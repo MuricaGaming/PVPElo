@@ -1,0 +1,29 @@
+name: PvPElo
+author: Lee Neighoff
+version: 1.0.2_2022-12-22
+api-version: 1.19
+main: com.muricagaming.pvpelo.Main
+softdepend: [TagAPI, ProtocolLib]
+
+description: "§7Configurable PvP ranking system.§r\n§bSupport the author!§r\n§7https://ko-fi.com/leeneighoff§r"
+
+commands:
+    pvpelo:
+      description: Base command for PvP Elo.
+      aliases: [pvpe, elo]
+      permission: pvpelo.basic
+    pvpeloadmin:
+      description: Administrative command for PvP Elo.
+      aliases: [pvpea, eloadmin, eloa]
+      permission: pvpelo.admin
+
+permissions:
+    pvpelo.*:
+        description: Grants full permissions.
+        default: op
+        children:
+            pvpelo.basic: true
+            pvpelo.admin: true
+    pvpelo.basic:
+        description: Access to /elo
+        default: true

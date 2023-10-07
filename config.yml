@@ -1,0 +1,44 @@
+# Config file for PvP Elo. Please use in-game commands to modify the plugin's configuration.
+# Support the author! https://ko-fi.com/leeneighoff
+
+# Elo rating for new players.
+# Default: 1000
+initial-elo: 1000
+
+# Base adjustment when two players of equal rating fight.
+# Default: 75
+base-adjustment: 75
+
+# Maximum adjustment possible after a single fight.
+# Default: 500
+max-adjustment: 500
+
+# The maximum rating ratio between a winner and loser before adjustment is reduced to 0.
+# Discourages bullying of low-rated players by high-rated players.
+# Default: 5 or 5:1 ratio
+max-ratio: 5
+
+# The maximum portion of a victim's elo to adjust by.
+# Prevents someone from losing most/all elo in some situations.
+# Default: 0.25 or 25% of victim's rating
+max-portion: 0.25
+
+# Prefix that appears with every command output.
+# Default: "&8[&9PvP Elo&8]&r"
+prefix: "&8[&9PvP Elo&8]&r"
+
+# Color for a player's elo in each chat message.
+# Default: "&9"
+elo-color: "&9"
+
+# Enables nametags support with TagAPI. TagAPI currently only works with 1.19.
+# Default: false
+nametags: false
+
+# Whether /elo top opens as a GUI or list in chat
+# Default: true
+leaderboard-gui: true
+
+# Please do not modify elo here.
+players:
+    00000000-0000-0000-0000-000000000000: 1

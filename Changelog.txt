@@ -1,0 +1,44 @@
+1.0 beta 3
+- Fixed logic error when setting base and max adjustment
+    - Would set the value before checking against the other, but only write to config after check
+- Added configurable max ratio
+    - Integer option
+    - Set it lower than base adjustment to encourage more even fights
+    - Lets you use a high base adjustment without opening up opportunity for bullying
+    - Base adjustment is still the hard cap on ratio, due to adjustment calculation formula
+    - Default is 5, or 5:1
+- Added  configurable max portion
+    - Decimal option, ranging from 0.0 < max portion <= 1.0.
+    - Caps adjustment to a portion of the victim's rating
+    - Default is 0.25 or 25%
+- Added comments to config
+    - Added shameless plug support link
+- Added shameless plug support link to /version PvPElo
+- Clarification for adjustment override priority:
+    1. Check if victim rating is 1. If yes, adjustment is 0
+    2. Check if max ratio is exceeded. If yes, adjustment is 0
+    3. Check if max portion is exceeded. If yes, adjustment is capped to max portion.
+    4. Check if max adjustment is exceeded. If yes, adjustment is capped to max adjustment.
+- Added leaderboard position and percentile to /elo check
+    - More useful info available to players
+- Top 10 board now shows configured elo color as well as colored names for the top 3.
+- Added color to various messages to improve readability.
+
+1.0 pre 1
+- (From suggestion) Add option for GUI displaying /elo top
+    - Shows top 9 players, plus the user's ranking in second row
+    - Hovering over the displayed heads shows position, elo rating, and percentile
+    - Enabled by default, toggled with /eloadmin gui
+- Cosmetic changes to make things more pretty <3
+
+1.0_2022-12-20
+- Tab autocomplete
+    - Makes typing commands a bit faster
+- Remove old, unused config options automatically
+    - Noticed min and max still present in old configs
+- Default prefix now uses dark aqua color (&9) for name
+    - I just think it looks nicer
+
+1.0.1_2022-12-21
+- Fixed tab autocomplete to still allow player names in second argument
+- Secured code in preparation for testing Elo PvP API
