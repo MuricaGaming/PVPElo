@@ -2,7 +2,8 @@ package com.muricagaming.pvpelo;
 
 import java.text.DecimalFormat;
 import java.util.logging.Logger;
-import com.lkeehl.tagapi.api.Tag;
+
+import com.nametagedit.plugin.NametagEdit;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -40,8 +41,7 @@ public class Main extends JavaPlugin {
 	int maxRatio;
 	double maxPortion;
 	boolean nametags;
-	Tag nametag;
-	boolean detectTagAPI;
+	boolean detectNametagEdit;
 	boolean leaderboardGUI;
 	Inventory leaderboard;
 	OfflinePlayer p;
@@ -56,12 +56,12 @@ public class Main extends JavaPlugin {
 		saveConfig();
 
 		// Check for TagAPI. If not found, nametag support disabled
-		if (getServer().getPluginManager().getPlugin("TagAPI") != null) {
-			logger.info("[PvP Elo] Detected TagAPI! Nametag support enabled.");
-			detectTagAPI = true;
+		if (getServer().getPluginManager().getPlugin("NametagEdit") != null) {
+			logger.info("[PvP Elo] Detected NametagEdit! Nametag support enabled.");
+			detectNametagEdit = true;
 		} else {
-			logger.info("[PvP Elo] TagAPI not detected! Nametag support disabled.");
-			detectTagAPI = false;
+			logger.info("[PvP Elo] NametagEdit not detected! Nametag support disabled.");
+			detectNametagEdit = false;
 		}
 
 		players = new HashMap<UUID, Integer>();
@@ -396,16 +396,12 @@ public class Main extends JavaPlugin {
 		saveConfig();
 	}
 
-	private void updateNametag(Player p) {
+	public void updateNametag(Player p) {
 		// Add rating to nametag, if enabled
-		if (nametags && detectTagAPI) {
-			nametag = Tag.create(p);
-			nametag.addTagLine(10).setText(pl -> p.getName() + ChatColor.DARK_GRAY + " | " + ChatColor.RESET + eloColor + getElo(p));
-			nametag.giveTag();
-		} else if (detectTagAPI) {
-			nametag = Tag.create(p);
-			nametag.addTagLine(10).setText(pl -> p.getName());
-			nametag.giveTag();
+		if (nametags && detectNametagEdit) {
+			NametagEdit.getApi().setSuffix(p, ChatColor.DARK_GRAY + " | " + ChatColor.RESET + eloColor + getElo(p));
+		} else if (detectNametagEdit) {
+			NametagEdit.getApi().showNametag(p);
 		}
 	}
 

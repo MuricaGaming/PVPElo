@@ -31,7 +31,7 @@ prefix: "&8[&9PvP Elo&8]&r"
 # Default: "&9"
 elo-color: "&9"
 
-# Enables nametags support with TagAPI. TagAPI currently only works with 1.19.
+# Enables nametags support with NametagEdit. https://www.spigotmc.org/resources/nametagedit.3836/
 # Default: false
 nametags: false
 
