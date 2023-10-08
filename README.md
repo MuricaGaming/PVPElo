@@ -10,7 +10,7 @@ Features:
     Graphical leaderboard showing top players and their stats, as well as your own to compare
         Text-in-chat leaderboard also available
     Placeholder to add to your chat plugin that shows a player's rating next to their name (placeholder: varElo)
-    TagAPI support to add ratings to nametags (TagAPI currently only supports 1.19 and below)
+    NametagEdit support to add ratings to nametags (NametagAPI currently only supports 1.20.1 and below)
 
 Documentation is available on the Documentation tab on this resource page.
 
