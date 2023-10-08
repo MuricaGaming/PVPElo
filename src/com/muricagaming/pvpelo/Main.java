@@ -401,7 +401,7 @@ public class Main extends JavaPlugin {
 		if (nametags && detectNametagEdit) {
 			NametagEdit.getApi().setSuffix(p, ChatColor.DARK_GRAY + " | " + ChatColor.RESET + eloColor + getElo(p));
 		} else if (detectNametagEdit) {
-			NametagEdit.getApi().showNametag(p);
+			NametagEdit.getApi().setSuffix(p, null);
 		}
 	}
 
