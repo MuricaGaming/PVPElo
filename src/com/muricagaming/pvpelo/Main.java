@@ -23,12 +23,11 @@ import java.util.Map.Entry;
 
 public class Main extends JavaPlugin {
 	public final Logger logger = Logger.getLogger("Minecraft");
-	private PluginManager pm;
 	JoinListener jl;
 	DamageListener dl;
 	ChatListener cl;
 	InventoryListener il;
-	HashMap<UUID, Integer> players;
+	HashMap<UUID, Integer> players = new HashMap<>();
 	HashMap<UUID, Integer> playersToSort;
 	List<Entry<UUID, Integer>> sortedPlayers;
 	String prefix;
@@ -64,11 +63,10 @@ public class Main extends JavaPlugin {
 			detectNametagEdit = false;
 		}
 
-		players = new HashMap<UUID, Integer>();
-		loadPlayers(true);
+        loadPlayers(true);
 
-		prefix = ChatColor.translateAlternateColorCodes('&', getConfig().getString("prefix")) + ChatColor.RESET + " ";
-		eloColor = ChatColor.translateAlternateColorCodes('&', getConfig().getString("elo-color"));
+		prefix = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getConfig().getString("prefix"))) + ChatColor.RESET + " ";
+		eloColor = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getConfig().getString("elo-color")));
 		initialElo = getConfig().getInt("initial-elo");
 		nametags = getConfig().getBoolean("nametags");
 		leaderboardGUI = getConfig().getBoolean("leaderboard-gui");
@@ -89,14 +87,14 @@ public class Main extends JavaPlugin {
 		dl = new DamageListener(this);
 		il = new InventoryListener(this);
 
-		pm = getServer().getPluginManager();
+		PluginManager pm = getServer().getPluginManager();
 		pm.registerEvents(jl, this);
 		pm.registerEvents(cl, this);
 		pm.registerEvents(dl, this);
 		pm.registerEvents(il, this);
 
-		getCommand("pvpelo").setTabCompleter(new Tabby(this));
-		getCommand("pvpeloadmin").setTabCompleter(new Tabby(this));
+		Objects.requireNonNull(getCommand("pvpelo")).setTabCompleter(new Tabby(this));
+		Objects.requireNonNull(getCommand("pvpeloadmin")).setTabCompleter(new Tabby(this));
 
 		logger.info("[PvP Elo] PvP Elo has been enabled!");
 	}
@@ -106,13 +104,14 @@ public class Main extends JavaPlugin {
 		logger.info("[PvP Elo] PvP Elo has been disabled!");
 	}
 
+	@SuppressWarnings( "deprecation" )
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("pvpelo")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("check") && sender instanceof Player) {
 					if (args.length == 1) {
 						try {
-							id = getServer().getPlayer(sender.getName()).getUniqueId();
+							id = Objects.requireNonNull(getServer().getPlayer(sender.getName())).getUniqueId();
 							sender.sendMessage(prefix + ChatColor.DARK_GRAY + "====" + ChatColor.RESET);
 							sender.sendMessage(prefix + ChatColor.GREEN + "Your stats: ");
 							sender.sendMessage(prefix + "  - Rating: " + players.get(id));
@@ -275,7 +274,7 @@ public class Main extends JavaPlugin {
 
 						for (int i = 1; i < args.length; i++)
 							if (i != args.length - 1)
-								sb.append(args[i] + " ");
+								sb.append(args[i]).append(" ");
 							else
 								sb.append(args[i]);
 
@@ -294,7 +293,7 @@ public class Main extends JavaPlugin {
 						for (char c : validChars)
 							if (code[1] == c && code[0] == '&') {
 								saveToConfig("elo-color", args[1]);
-								eloColor = ChatColor.translateAlternateColorCodes('&', getConfig().getString("elo-color"));
+								eloColor = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getConfig().getString("elo-color")));
 								sender.sendMessage(prefix + "Set the elo color to " + args[1] + ".");
 								updateAllNametags(sender);
 								success = true;
@@ -347,24 +346,25 @@ public class Main extends JavaPlugin {
 	private void loadPlayers(boolean init) {
 		ConfigurationSection section = getConfig().getConfigurationSection("players");
 
-		for (String idString : section.getKeys(false)) {
+        assert section != null;
+        for (String idString : section.getKeys(false)) {
 			players.put(UUID.fromString(idString), section.getInt(idString));
 			if (init)
 				logger.info("[PvP Elo] LOAD | " + UUID.fromString(idString) + " | " + section.getInt(idString));
 		}
 	}
 
-	private void savePlayers(boolean shutdown) {
-		Iterator<Entry<UUID, Integer>> it = players.entrySet().iterator();
+	public void savePlayers(boolean shutdown) {
 
-		while (it.hasNext()) {
-			Map.Entry<UUID, Integer> pair = (Map.Entry<UUID, Integer>) it.next();
-			saveToConfig("players." + pair.getKey().toString(), pair.getValue());
-			if (shutdown)
-				logger.info("[PvP Elo] SAVE | " + pair.getKey().toString() + " | " + pair.getValue().toString());
-		}
+        for (Entry<UUID, Integer> pair : players.entrySet()) {
+            saveToConfig("players." + pair.getKey().toString(), pair.getValue());
+            if (shutdown)
+                logger.info("[PvP Elo] SAVE | " + pair.getKey().toString() + " | " + pair.getValue().toString());
+        }
 	}
 
+
+	@SuppressWarnings("unused")
 	private void reloadPlayers() {
 		savePlayers(false);
 		loadPlayers(false);
@@ -387,7 +387,7 @@ public class Main extends JavaPlugin {
 			elo = minElo;
 
 		players.put(p.getUniqueId(), elo);
-		saveToConfig("players." + p.getUniqueId().toString(), elo);
+		saveToConfig("players." + p.getUniqueId(), elo);
 		updateNametag(getServer().getPlayer(p.getUniqueId()));
 	}
 
@@ -419,13 +419,9 @@ public class Main extends JavaPlugin {
 	private void sortPlayers() {
 		playersToSort = players;
 		playersToSort.remove(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-		sortedPlayers = new ArrayList<Entry<UUID, Integer>>(playersToSort.entrySet());
+		sortedPlayers = new ArrayList<>(playersToSort.entrySet());
 
-		Collections.sort(sortedPlayers, new Comparator<Entry<UUID, Integer>>() {
-			public int compare(Entry<UUID, Integer> e1, Entry<UUID, Integer> e2) {
-				return e2.getValue().compareTo(e1.getValue());
-			}
-		});
+		sortedPlayers.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
 	}
 
 	public int getLeaderboardPosition(OfflinePlayer p) {
@@ -471,13 +467,13 @@ public class Main extends JavaPlugin {
 				lore[1] = ChatColor.WHITE + "Rank: " + getLeaderboardPosition(op) + " of " + sortedPlayers.size();
 				lore[2] = ChatColor.WHITE + "Percentile: " + getPercentile(op);
 				if(i == 0)
-					leaderboard.addItem(createHead(Material.PLAYER_HEAD, ChatColor.YELLOW + op.getName(), lore, op));
+					leaderboard.addItem(createHead(ChatColor.YELLOW + op.getName(), lore, op));
 				else if (i == 1)
-					leaderboard.addItem(createHead(Material.PLAYER_HEAD, ChatColor.GRAY + op.getName(), lore, op));
+					leaderboard.addItem(createHead(ChatColor.GRAY + op.getName(), lore, op));
 				else if (i == 2)
-					leaderboard.addItem(createHead(Material.PLAYER_HEAD, ChatColor.GOLD + op.getName(), lore, op));
+					leaderboard.addItem(createHead(ChatColor.GOLD + op.getName(), lore, op));
 				else
-					leaderboard.addItem(createHead(Material.PLAYER_HEAD, ChatColor.AQUA + op.getName(), lore, op));
+					leaderboard.addItem(createHead(ChatColor.AQUA + op.getName(), lore, op));
 			}
 		}
 
@@ -492,7 +488,7 @@ public class Main extends JavaPlugin {
 		lore[0] = ChatColor.WHITE + "Rating: " + ChatColor.translateAlternateColorCodes('&', eloColor) + getElo(p);
 		lore[1] = ChatColor.WHITE + "Rank: " + getLeaderboardPosition(p) + " of " + sortedPlayers.size();
 		lore[2] = ChatColor.WHITE + "Percentile: " + getPercentile(p);
-		leaderboard.setItem(13, createHead(Material.PLAYER_HEAD, ChatColor.GREEN + "Your stats:", lore, p));
+		leaderboard.setItem(13, createHead(ChatColor.GREEN + "Your stats:", lore, p));
 
 		leaderboard.setItem(14, new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1));
 		leaderboard.setItem(15, new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1));
@@ -500,11 +496,12 @@ public class Main extends JavaPlugin {
 		leaderboard.setItem(17, new ItemStack(Material.LIME_STAINED_GLASS_PANE, 1));
 	}
 
-	private ItemStack createHead(Material material, String name, String[] lore, OfflinePlayer p) {
-		ItemStack head = new ItemStack(material, 1);
+	private ItemStack createHead(String name, String[] lore, OfflinePlayer p) {
+		ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
 		SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-		meta.setDisplayName(ChatColor.RESET + name);
+        assert meta != null;
+        meta.setDisplayName(ChatColor.RESET + name);
 		meta.setOwningPlayer(p);
 		meta.setLore(Arrays.asList(lore));
 		head.setItemMeta(meta);
