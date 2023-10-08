@@ -3,7 +3,7 @@ author: Lee Neighoff
 version: 2023.10.07
 api-version: 1.20
 main: com.muricagaming.pvpelo.Main
-softdepend: [TagAPI, ProtocolLib]
+softdepend: [NametagEdit, ProtocolLib]
 
 description: "§7Configurable PvP ranking system.§r\n§bSupport the author!§r\n§7https://ko-fi.com/leeneighoff§r"
 
