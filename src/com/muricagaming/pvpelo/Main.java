@@ -4,10 +4,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Logger;
 
 import com.nametagedit.plugin.NametagEdit;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -48,24 +45,29 @@ public class Main extends JavaPlugin {
 	UUID id;
 	int test;
 	double testd;
+	ArrayList<World> enabledWorlds;
+	String consolePrefix = "[PvP Elo] ";
+	boolean disabledWorldMessage;
+	boolean allEnabled;
 
 	public void onEnable() {
 		saveDefaultConfig();
 		getConfig().options().copyDefaults(true);
 		saveConfig();
 
+		prefix = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getConfig().getString("prefix"))) + ChatColor.RESET + " ";
+
 		// Check for TagAPI. If not found, nametag support disabled
 		if (getServer().getPluginManager().getPlugin("NametagEdit") != null) {
-			logger.info("[PvP Elo] Detected NametagEdit! Nametag support enabled.");
+			logger.info(consolePrefix + "Detected NametagEdit! Nametag support enabled.");
 			detectNametagEdit = true;
 		} else {
-			logger.info("[PvP Elo] NametagEdit not detected! Nametag support disabled.");
+			logger.info(consolePrefix + "NametagEdit not detected! Nametag support disabled.");
 			detectNametagEdit = false;
 		}
 
         loadPlayers(true);
 
-		prefix = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getConfig().getString("prefix"))) + ChatColor.RESET + " ";
 		eloColor = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getConfig().getString("elo-color")));
 		initialElo = getConfig().getInt("initial-elo");
 		nametags = getConfig().getBoolean("nametags");
@@ -79,8 +81,9 @@ public class Main extends JavaPlugin {
 		maxRatio = getConfig().getInt("max-ratio");
 		maxPortion = getConfig().getDouble("max-portion");
 
-		getConfig().set("max-elo", null);
+		// Remove min and max elo from config
 		getConfig().set("min-elo", null);
+		getConfig().set("max-elo", null);
 
 		jl = new JoinListener(this);
 		cl = new ChatListener(this);
@@ -96,12 +99,34 @@ public class Main extends JavaPlugin {
 		Objects.requireNonNull(getCommand("pvpelo")).setTabCompleter(new Tabby(this));
 		Objects.requireNonNull(getCommand("pvpeloadmin")).setTabCompleter(new Tabby(this));
 
-		logger.info("[PvP Elo] PvP Elo has been enabled!");
+		// Initialize enabled worlds list and add to it as appropriate.
+		enabledWorlds = new ArrayList<>();
+
+		if (Objects.requireNonNull(getConfig().getStringList("enabled-worlds")).get(0).equalsIgnoreCase("%all%")) {
+			enabledWorlds.addAll(getServer().getWorlds());
+			logger.info(consolePrefix + "Enabled server-wide elo tracking. Use /eloa allworlds to toggle.");
+			allEnabled = true;
+		}
+		else {
+			for(String s: getConfig().getStringList("enabled-worlds")) {
+				try {
+					enabledWorlds.add(getServer().getWorld(s));
+					logger.info(consolePrefix + "Enabled elo tracking for world " + s + ".");
+				} catch (Exception e) {
+					logger.warning(consolePrefix + "ERROR: World " + s + " is in the config, but not on the server. Skipping.");
+				}
+			}
+			allEnabled = false;
+		}
+
+		disabledWorldMessage = getConfig().getBoolean("disabled-world-message");
+
+		logger.info(consolePrefix + "PvP Elo has been enabled!");
 	}
 
 	public void onDisable() {
 		savePlayers(true);
-		logger.info("[PvP Elo] PvP Elo has been disabled!");
+		logger.info(consolePrefix + "PvP Elo has been disabled!");
 	}
 
 	@SuppressWarnings( "deprecation" )
@@ -329,6 +354,63 @@ public class Main extends JavaPlugin {
 						leaderboardGUI = true;
 						saveToConfig("leaderboard-gui", true);
 						sender.sendMessage(prefix + "Leaderboard GUI enabled. /elo top will now show a GUI.");
+					}
+				}
+				else if (args[0].equalsIgnoreCase("world")) {
+					try {
+						if(!enabledWorlds.contains(getServer().getWorld(args[1])) && !allEnabled) {
+							ArrayList<String> worldNames = new ArrayList<>();
+							enabledWorlds.add(getServer().getWorld(args[1]));
+							for(World w: enabledWorlds)
+								worldNames.add(w.getName());
+							saveToConfig("enabled-worlds", worldNames);
+							sender.sendMessage(prefix + ChatColor.GREEN + "Enabled" + ChatColor.RESET + " elo tracking for world " + ChatColor.GOLD + args[1] + ChatColor.RESET + ".");
+						}
+						else if (!allEnabled) {
+							ArrayList<String> worldNames = new ArrayList<>();
+							enabledWorlds.remove(getServer().getWorld(args[1]));
+							for(World w: enabledWorlds)
+								worldNames.add(w.getName());
+							saveToConfig("enabled-worlds", worldNames);
+							sender.sendMessage(prefix + ChatColor.RED + "Disabled" + ChatColor.RESET + " elo tracking for world " + ChatColor.GOLD + args[1] + ChatColor.RESET + ".");
+						}
+						else
+							sender.sendMessage(prefix + ChatColor.RED + "ERROR: Server-wide tracking is enabled. Disable with /eloa allworlds");
+					} catch (Exception e) {
+						sender.sendMessage(prefix + ChatColor.RED + "ERROR: Could not find that world.");
+					}
+				}
+				else if (args[0].equalsIgnoreCase("allworlds")) {
+
+					ArrayList<String> worldNames = new ArrayList<>();
+
+					if(allEnabled) {
+						allEnabled = false;
+						for(World w: enabledWorlds)
+							worldNames.add(w.getName());
+						saveToConfig("enabled-worlds", worldNames);
+						sender.sendMessage(prefix + ChatColor.RED + "Disabled" + ChatColor.RESET + " server-wide elo tracking and switched to per-world tracking.");
+						sender.sendMessage(prefix + ChatColor.YELLOW + "CAUTION: Elo tracking still enabled in all worlds. Disable with /eloa world <world>");
+					}
+					else {
+						allEnabled = true;
+						saveToConfig("enabled-worlds", "%all%");
+						for (World w: getServer().getWorlds())
+							if(!enabledWorlds.contains(w))
+								enabledWorlds.add(w);
+						sender.sendMessage(prefix + ChatColor.GREEN + "Enabled" + ChatColor.RESET + " server-wide elo tracking.");
+					}
+				}
+				else if(args[0].equalsIgnoreCase("disabledworldmessage")) {
+					if(disabledWorldMessage) {
+						disabledWorldMessage = false;
+						saveToConfig("disabled-world-message", disabledWorldMessage);
+						sender.sendMessage(prefix + ChatColor.RED + "Disabled" + ChatColor.RESET + " warning message in non-tracked worlds.");
+					}
+					else {
+						disabledWorldMessage = true;
+						saveToConfig("disabled-world-message", disabledWorldMessage);
+						sender.sendMessage(prefix + ChatColor.GREEN + "Enabled" + ChatColor.RESET + " warning message in non-tracked worlds.");
 					}
 				}
 				else if (args[0].equalsIgnoreCase("reload")) {

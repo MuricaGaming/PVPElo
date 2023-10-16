@@ -1,6 +1,14 @@
 # Config file for PvP Elo. Please use in-game commands to modify the plugin's configuration.
 # Support the author! https://ko-fi.com/leeneighoff
 
+# Worlds where combat contributes to ranking
+# Default: All worlds
+enabled-worlds:
+    - "%all%"
+
+# Should PvP Elo send a message when a player kills/is killed in PVP outside enabled worlds?
+disabled-world-message: false
+
 # Elo rating for new players.
 # Default: 1000
 initial-elo: 1000
