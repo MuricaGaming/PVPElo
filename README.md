@@ -13,7 +13,5 @@ PvP Elo adds in a rating system based on PvP performance, measured with an elo s
 - Placeholder to add to your chat plugin that shows a player's rating next to their name (placeholder: varElo)
 - NametagEdit support to add ratings to nametags (NametagAPI currently only supports 1.20.1 and below)
 
-Documentation is available on the Documentation tab on this resource page.
-
 ## Official server
 **play.murica.gg**
